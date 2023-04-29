@@ -13,6 +13,8 @@ import CategoryScreen from './components/screens/CategoryScreen';
 import ProfileScreen from './components/screens/ProfileScreen';
 import CartScreen from './components/screens/CartScreen';
 
+import fetchData from './src/data/fetchData'; // Import fetchData function
+
 const Tab = createBottomTabNavigator();
 
 const HomeScreen = () => (
@@ -24,6 +26,17 @@ const HomeScreen = () => (
 
 const App = () => {
   const [isConnected, setIsConnected] = useState(true);
+  const [data, setData] = useState(null); // Add state to store fetched data
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
+
+  useEffect(() => {
+    const loadData = async () => {
+      const fetchedData = await fetchData();
+      setData(fetchedData);
+      setIsLoading(false); // Set loading state to false when data is ready
+    };
+    loadData();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
@@ -43,66 +56,76 @@ const App = () => {
     );
   }
 
+  // Show a loading screen while the data is being fetched
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-          
-            if (route.name === 'Home') {
-              iconName = 'home';
-            } else if (route.name === 'Category') {
-              iconName = 'grid';
-            } else if (route.name === 'Profile') {
-              iconName = 'user';
-            } else if (route.name === 'Cart') {
-              iconName = 'shopping-cart';
-            }
-          
-            const iconColor = focused ? '#4298e7' : color;
-          
-            return <Icon name={iconName} size={size} color={iconColor} />;
-          },
-          
-          tabBarLabel: ({ focused, color }) => {
-            if (focused) {
-              return (
-                <Text
-                  style={{
-                    fontSize: 12,
-                    marginBottom: 5,
-                    color,
-                  }}
-                >
-                  {route.name}
-                </Text>
-              );
-            } else {
-              return null;
-            }
-          },
-          tabBarActiveTintColor: 'blue',
-          tabBarInactiveTintColor: 'gray',
-          tabBarStyle: {
-            height: 60,
-            paddingBottom: 5,
-            paddingHorizontal: 15,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          },
-          tabBarShowLabel: false,
-        })}
-      >
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
-        <Tab.Screen name="Category" component={CategoryScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
-        <Tab.Screen name="Cart" component={CartScreen} />
-      </Tab.Navigator>
+  screenOptions={({ route }) => ({
+    tabBarIcon: ({ focused, color, size }) => {
+      let iconName;
+
+      if (route.name === 'Home') {
+        iconName = 'home';
+      } else if (route.name === 'Category') {
+        iconName = 'grid';
+      } else if (route.name === 'Profile') {
+        iconName = 'user';
+      } else if (route.name === 'Cart') {
+        iconName = 'shopping-cart';
+      }
+
+      const iconColor = focused ? '#4298e7' : color;
+
+      return <Icon name={iconName} size={size} color={iconColor} />;
+    },
+
+    tabBarLabel: ({ focused, color }) => {
+      if (focused) {
+        return (
+          <Text
+            style={{
+              fontSize: 12,
+              marginBottom: 5,
+              color,
+            }}
+          >
+            {route.name}
+          </Text>
+        );
+      } else {
+        return null;
+      }
+    },
+    tabBarActiveTintColor: 'blue',
+    tabBarInactiveTintColor: 'gray',
+    tabBarStyle: {
+      height: 60,
+      paddingBottom: 5,
+      paddingHorizontal: 15,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
+    tabBarShowLabel: false,
+  })}
+>
+  <Tab.Screen
+    name="Home"
+    component={HomeScreen}
+    options={{ headerShown: false }}
+  />
+  <Tab.Screen name="Category" component={CategoryScreen} />
+  <Tab.Screen name="Profile" component={ProfileScreen} />
+  <Tab.Screen name="Cart" component={CartScreen} />
+</Tab.Navigator>
+
     </NavigationContainer>
   );
 };
@@ -120,6 +143,11 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 24,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
